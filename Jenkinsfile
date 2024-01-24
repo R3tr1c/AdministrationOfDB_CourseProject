@@ -3,12 +3,11 @@ pipeline {
 
     environment {
         VAULT_ADDR = 'http://localhost:8201'
-        
-        VAULT_CREDENTIALS = 'my-vault-token'
+        VAULT_CREDENTIALS = 'my-vault-token' // Убран комментарий для безопасности
     }
 
     stages {
-        stage('Preparation') { // Запустить перед вытаскиванием секрета
+        stage('Preparation') {
             steps {
                 echo 'Preparing the environment...'
             }
@@ -18,27 +17,35 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: "${env.VAULT_CREDENTIALS}", variable: 'VAULT_TOKEN')]) {
                     script {
-                        // Use Vault CLI Пример использования CLI, можно использовать также API
-                        def secrets = sh(script: "vault read -field=data -format=json secret/myapp/config", returnStdout: true).trim()
-                        echo "Secrets: ${secrets}"
+                        // Ваш пайплайн должен быть правильно настроен, чтобы использовать VAULT_ADDR
+                        env.VAULT_AUTH_METHOD = 'token' // Указание метода авторизации
+                        sh 'vault login $VAULT_TOKEN' // Вход в Vault с использованием VAULT_TOKEN
+                        
+                        // Запрос Secrets используя Vault CLI и приведение их в скрытом формате
+                        def secrets = sh(script: "vault kv get -format=json secret/myapp/config", returnStdout: true).trim()
                         
                         // Парсинг JSON ответа для извлечения конкретных секретов
                         def parsedSecrets = readJSON text: secrets
-                        env.MYAPP_USERNAME = parsedSecrets.username
-                        env.MYAPP_PASSWORD = parsedSecrets.password
+                        
+                        // Присваивание переменных среды без echo для безопасности
+                        env.MYAPP_USERNAME = parsedSecrets.data.username
+                        env.MYAPP_PASSWORD = parsedSecrets.data.password
                     }
                 }
             }
         }
 
-        stage('Use Secret') { // Использовать секрет
+        stage('Use Secret') {
             steps {
-                echo "Username is: ${env.MYAPP_USERNAME}"
-                echo "Password is: ${env.MYAPP_PASSWORD}"
+                script {
+                    // Использование секретов, убедитесь, что они не печатаются или не отображаются.
+                    // Например, вы можете передать их в другой скрипт или приложение.
+                    sh 'echo "Передача секретов в безопасное место"'
+                }
             }
         }
 
-        stage('Post-processing') { // Запустить после использования секрета
+        stage('Post-processing') {
             steps {
                 echo 'Cleaning up...'
             }
