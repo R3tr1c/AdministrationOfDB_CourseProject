@@ -16,7 +16,7 @@ pipeline {
                 script {
                     // Определение секретов и конфигурации Vault
                     def secrets = [
-                        [path: 'secret/myapp/config', engineVersion: 2, secretValues: [
+                        [path: 'secret/myapp/config', engineVersion: 1, secretValues: [
                             [envVar: 'MYAPP_USERNAME', vaultKey: 'username'],
                             [envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
                         ]]
