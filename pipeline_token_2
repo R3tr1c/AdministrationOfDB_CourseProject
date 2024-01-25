@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+    environment {
+        // Адрес сервера Vault
+        VAULT_ADDR = 'http://localhost:8201'
+    }
+    stages {
+        stage('Preparation') {
+            steps {
+                echo 'Preparing the environment...'
+            }
+        }
+        
+        stage('Get Secret') {
+            steps {
+                script {
+                    // Определение секретов и конфигурации Vault
+                    def secrets = [
+                        [path: 'secret/myapp/config', engineVersion: 1, secretValues: [
+                            [envVar: 'MYAPP_USERNAME', vaultKey: 'username'],
+                            [envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
+                        ]]
+                    ]
+                    def configuration = [vaultUrl: "$VAULT_ADDR", vaultCredentialId: 'vault-token-creds', engineVersion: 1]
+                    
+                    // Чтение секретов из Vault
+                    withVault(configuration: configuration, vaultSecrets: secrets) {
+                        // Теперь переменные окружения MYAPP_USERNAME и MYAPP_PASSWORD установлены
+                        // и могут быть использованы в этом блоке
+                        echo "Значение username: ${env.MYAPP_USERNAME}"
+                        echo "Значение password: ${env.MYAPP_PASSWORD}"
+                    }
+                }
+            }
+        }
+        
+        stage('Use Secret') {
+            steps {
+                script {
+                    // Здесь можно использовать секреты (env.MYAPP_USERNAME и env.MYAPP_PASSWORD)
+                    // Для безопасности не выводите их напрямую, как в строке выше.
+                    // Этот эхо-шаг добавлен только для демонстрации и не следует использовать его с настоящими секретами.
+                    echo 'Using secrets in the environment...'
+                }
+            }
+        }
+        
+        stage('Post-processing') {
+            steps {
+                echo 'Cleaning up...'
+            }
+        }
+    }
+}
