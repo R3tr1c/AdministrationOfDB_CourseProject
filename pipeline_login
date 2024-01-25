@@ -30,7 +30,9 @@ pipeline {
                         env.MYAPP_USERNAME = parsedSecrets.data.username
                         env.MYAPP_PASSWORD = parsedSecrets.data.password
                         
-                        // Не выводим секретные значения, чтобы обеспечить безопасность
+                         // Вывод полученных секретов
+                        println "Значение username: ${env.MYAPP_USERNAME}"
+                        println "Значение password: ${env.MYAPP_PASSWORD}"
                     }
                 }
             }
