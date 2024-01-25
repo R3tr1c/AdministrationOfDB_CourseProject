@@ -13,18 +13,12 @@ Preparing the environment...
 [Pipeline] // stage
 [Pipeline] stage
 [Pipeline] { (Get Secret)
-[Pipeline] withCredentials
-Masking supported pattern matches of $SECRET_ID
-[Pipeline] {
 [Pipeline] script
 [Pipeline] {
-[Pipeline] sh
-+ vault write auth/approle/login role_id=761468d4-577f-849c-54db-bda24d692d1a secret_id=****
-[Pipeline] readJSON
+[Pipeline] withVault
+WARNING: Unknown parameter(s) found for class type 'com.datapipe.jenkins.vault.VaultBindingStep': engineVersion,vaultAddr,vaultCredentialId
 [Pipeline] }
 [Pipeline] // script
-[Pipeline] }
-[Pipeline] // withCredentials
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] stage
@@ -42,14 +36,12 @@ Stage "Post-processing" skipped due to earlier failure(s)
 [Pipeline] }
 [Pipeline] // node
 [Pipeline] End of Pipeline
-Also:   org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: 88cb1cef-04dc-4f3f-86fd-d2e9e1c1ebb6
-hudson.remoting.ProxyException: net.sf.json.JSONException: Invalid JSON String
-	at net.sf.json.JSONSerializer.toJSON(JSONSerializer.java:143)
-	at net.sf.json.JSONSerializer.toJSON(JSONSerializer.java:103)
-	at net.sf.json.JSONSerializer.toJSON(JSONSerializer.java:84)
-	at org.jenkinsci.plugins.pipeline.utility.steps.json.ReadJSONStepExecution.doRun(ReadJSONStepExecution.java:87)
-	at org.jenkinsci.plugins.pipeline.utility.steps.AbstractFileOrTextStepExecution.run(AbstractFileOrTextStepExecution.java:29)
-	at org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution.lambda$start$0(SynchronousNonBlockingStepExecution.java:47)
+Also:   org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: 0cbe48b8-b37e-45b8-8320-cd9de5314399
+com.cloudbees.plugins.credentials.CredentialsUnavailableException: Property 'my-vault-token' is currently unavailable
+	at com.datapipe.jenkins.vault.VaultAccessor.retrieveVaultCredentials(VaultAccessor.java:255)
+	at com.datapipe.jenkins.vault.VaultAccessor.retrieveVaultSecrets(VaultAccessor.java:188)
+	at com.datapipe.jenkins.vault.VaultBindingStep$Execution.doStart(VaultBindingStep.java:115)
+	at org.jenkinsci.plugins.workflow.steps.GeneralNonBlockingStepExecution.lambda$run$0(GeneralNonBlockingStepExecution.java:77)
 	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
 	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
