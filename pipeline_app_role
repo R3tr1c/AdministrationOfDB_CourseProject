@@ -17,10 +17,13 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'vault-secret-id', variable: 'SECRET_ID')]) {
                     script {
-                        // Аутентификация с использованием AppRole
-                        def loginOutput = sh(script: "vault write auth/approle/login role_id=\$ROLE_ID secret_id=\$SECRET_ID", returnStdout: true).trim()
-                        def token = readJSON text: loginOutput
-                        env.VAULT_TOKEN = token.auth.client_token
+                         // Аутентификация с использованием AppRole и возвращение результата в формате JSON
+                        def loginOutput = sh(script: "vault write -format=json auth/approle/login role_id=\$ROLE_ID secret_id=\$SECRET_ID", returnStdout: true).trim()
+                        // Парсинг вывода JSON для извлечения токена клиента
+                        def tokenData = readJSON text: loginOutput
+                        def clientToken = tokenData.auth.client_token
+                        // Установка токена как переменной среды
+                        env.VAULT_TOKEN = clientToken
                         
                         // Убедитесь, что вы не выводите VAULT_TOKEN в логи
                         // Запрос Secrets используя Vault CLI
