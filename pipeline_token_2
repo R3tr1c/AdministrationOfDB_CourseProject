@@ -21,7 +21,7 @@ pipeline {
                             [envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
                         ]]
                     ]
-                    def configuration = [vaultUrl: "$VAULT_ADDR", vaultCredentialId: 'vault-token-creds', engineVersion: 1]
+                    def configuration = [vaultUrl: "$VAULT_ADDR", vaultCredentialId: 'my-vault-token', engineVersion: 1]
                     
                     // Чтение секретов из Vault
                     withVault(configuration: configuration, vaultSecrets: secrets) {
