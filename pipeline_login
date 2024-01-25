@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        VAULT_ADDR = 'http://localhost:8201'
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+                echo 'Preparing the environment...'
+            }
+        }
+        
+        stage('Get Secret') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'vault-login', usernameVariable: 'VAULT_USER', passwordVariable: 'VAULT_PASS')]) {
+                    script {
+                        // Аутентификация с использованием метода userpass
+                        def login_output = sh(script: "vault login -method=userpass username=\$VAULT_USER password=\$VAULT_PASS", returnStdout: true).trim()
+                        echo 'Authenticated to Vault'
+                        
+                        // Запрос Secrets используя Vault CLI
+                        def secrets = sh(script: "vault kv get -format=json secret/myapp/config", returnStdout: true).trim()
+                        
+                        // Парсинг JSON ответа для извлечения конкретных секретов
+                        def parsedSecrets = readJSON text: secrets
+                        
+                        // Присваивание переменных среды с секретами без их вывода
+                        env.MYAPP_USERNAME = parsedSecrets.data.username
+                        env.MYAPP_PASSWORD = parsedSecrets.data.password
+                        
+                        // Не выводим секретные значения, чтобы обеспечить безопасность
+                    }
+                }
+            }
+        }
+
+        stage('Use Secret') {
+            steps {
+                script {
+                    // Использование секретов без их печати, например, передача в другой скрипт
+                    sh 'echo "Передача секретов в безопасное место (Use secrets safely here)"'
+                }
+            }
+        }
+
+        stage('Post-processing') {
+            steps {
+                echo 'Cleaning up...'
+            }
+        }
+    }
+}
