@@ -15,9 +15,14 @@ Preparing the environment...
 [Pipeline] { (Get Secret)
 [Pipeline] script
 [Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of $VAULT_USER or $VAULT_PASSWORD
+[Pipeline] {
 [Pipeline] withVault
-Retrieving secret: secret/myapp/config
+WARNING: Unknown parameter(s) found for class type 'com.datapipe.jenkins.vault.configuration.VaultConfiguration': authentication
 [Pipeline] // withVault
+[Pipeline] }
+[Pipeline] // withCredentials
 [Pipeline] }
 [Pipeline] // script
 [Pipeline] }
@@ -37,10 +42,10 @@ Stage "Post-processing" skipped due to earlier failure(s)
 [Pipeline] }
 [Pipeline] // node
 [Pipeline] End of Pipeline
-Also:   org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: 3573f0b5-6235-40d7-a928-ccc15c2d09e5
-com.datapipe.jenkins.vault.exception.VaultPluginException: Access denied to Vault path 'secret/myapp/config'
-	at com.datapipe.jenkins.vault.VaultAccessor.responseHasErrors(VaultAccessor.java:273)
-	at com.datapipe.jenkins.vault.VaultAccessor.retrieveVaultSecrets(VaultAccessor.java:212)
+Also:   org.jenkinsci.plugins.workflow.actions.ErrorAction$ErrorId: 7962815f-6c57-4067-ad00-74cd568f273f
+com.cloudbees.plugins.credentials.CredentialsUnavailableException: Property 'my-vault-token' is currently unavailable
+	at com.datapipe.jenkins.vault.VaultAccessor.retrieveVaultCredentials(VaultAccessor.java:255)
+	at com.datapipe.jenkins.vault.VaultAccessor.retrieveVaultSecrets(VaultAccessor.java:188)
 	at com.datapipe.jenkins.vault.VaultBindingStep$Execution.doStart(VaultBindingStep.java:115)
 	at org.jenkinsci.plugins.workflow.steps.GeneralNonBlockingStepExecution.lambda$run$0(GeneralNonBlockingStepExecution.java:77)
 	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
