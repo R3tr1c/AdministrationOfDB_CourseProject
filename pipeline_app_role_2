@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+
+    environment {
+        // Адрес Vault
+        VAULT_ADDR = 'http://localhost:8201'
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+                echo 'Preparing the environment...'
+            }
+        }
+        
+        stage('Get Secret') {
+            steps {
+                script {
+                    // Используйте withVault для извлечения данных аутентификации
+                    withVault([vaultAddr: "$VAULT_ADDR",
+                               vaultCredentialId: 'id-учетных-данных-vault-approle', 
+                               engineVersion: 2]) {
+                        
+                        // Устанавливаемые переменные среды VAULT_TOKEN, как и прежде, скрыты
+                    
+                        // Доступ к секрету через Vault
+                        def secrets = [
+                            [$class: 'VaultSecret', path: 'secret/myapp/config', secretValues: [
+                                [$class: 'VaultSecretValue', envVar: 'MYAPP_USERNAME', vaultKey: 'username'],
+                                [$class: 'VaultSecretValue', envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
+                            ]]
+                        ]
+                        
+                        // Загрузка данных в переменные среды
+                        wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+                            // В этой области MYAPP_USERNAME и MYAPP_PASSWORD доступны как переменные с окружением
+                            echo "Значение username: ${env.MYAPP_USERNAME}"
+                            echo "Значение password: ${env.MYAPP_PASSWORD}"
+
+                            println "Значение username: ${env.MYAPP_USERNAME}"
+                            println "Значение password: ${env.MYAPP_PASSWORD}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Use Secret') {
+            steps {
+                script {
+                    // Используйте переменные среды, содержащие секреты, как вам необходимо здесь
+                    // Убедитесь, что конфиденциальные данные защищены и не выводятся в логи
+                    sh 'echo "Передача секретов в безопасное место"'
+                }
+            }
+        }
+
+        stage('Post-processing') {
+            steps {
+                echo 'Cleaning up...'
+                // Очистка переменных среды, если она необходима
+            }
+        }
+    }
+}
