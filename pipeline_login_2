@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+    environment {
+        // Адрес сервера Vault
+        VAULT_ADDR = 'http://localhost:8201'
+    }
+    stages {
+        stage('Preparation') {
+            steps {
+                echo 'Preparing the environment...'
+            }
+        }
+
+        stage('Get Secret') {
+            steps {
+                script {
+                    // Определение секретов и конфигурации Vault
+                    def secrets = [
+                        [path: 'secret/data/myapp/config', engineVersion: 1, secretValues: [
+                            [envVar: 'MYAPP_USERNAME', vaultKey: 'username'],
+                            [envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
+                        ]]
+                    ]
+                    
+                    // Чтение секретов из Vault с использованием аутентификации по логину и паролю
+                    withCredentials([usernamePassword(credentialsId: 'vault-login', passwordVariable: 'VAULT_PASSWORD', usernameVariable: 'VAULT_USER')]) {
+                        def configuration = [vaultUrl: "$VAULT_ADDR", authentication: ['Userpass', [userVar: 'VAULT_USER', passVar: 'VAULT_PASSWORD']], engineVersion: 1]
+                        
+                        withVault([configuration: configuration, vaultSecrets: secrets]) {
+                            // Теперь переменные окружения MYAPP_USERNAME и MYAPP_PASSWORD установлены
+                            // и могут быть использованы в этом блоке
+                            echo "Значение username: ${env.MYAPP_USERNAME}"
+                            echo "Значение password: ${env.MYAPP_PASSWORD}"
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Use Secret') {
+            steps {
+                script {
+                    // Используйте секреты в этом блоке скрипта
+                    echo 'Using secrets in the environment...'
+                }
+            }
+        }
+
+        stage('Post-processing') {
+            steps {
+                echo 'Cleaning up...'
+            }
+        }
+    }
+}
