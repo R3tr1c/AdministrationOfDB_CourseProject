@@ -1,56 +1,46 @@
 pipeline {
     agent any
-
     environment {
-        // Адрес Vault
+        // Адрес сервера Vault
         VAULT_ADDR = 'http://localhost:8201'
     }
-
     stages {
         stage('Preparation') {
             steps {
                 echo 'Preparing the environment...'
             }
         }
-        
+
         stage('Get Secret') {
             steps {
                 script {
-                    // Используйте withVault для извлечения данных аутентификации
-                    withVault([vaultAddr: "$VAULT_ADDR",
-                               vaultCredentialId: 'id-учетных-данных-vault-approle', 
-                               engineVersion: 2]) {
-                        
-                        // Устанавливаемые переменные среды VAULT_TOKEN, как и прежде, скрыты
+                    // Определение секретов и конфигурации Vault
+                    def secrets = [
+                        [path: 'secret/myapp/config', engineVersion: 2, secretValues: [
+                            [envVar: 'MYAPP_USERNAME', vaultKey: 'username'],
+                            [envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
+                        ]]
+                    ]
+                    def configuration = [vaultUrl: "$VAULT_ADDR", vaultCredentialId: 'app-role-creds', engineVersion: 2]
                     
-                        // Доступ к секрету через Vault
-                        def secrets = [
-                            [$class: 'VaultSecret', path: 'secret/myapp/config', secretValues: [
-                                [$class: 'VaultSecretValue', envVar: 'MYAPP_USERNAME', vaultKey: 'username'],
-                                [$class: 'VaultSecretValue', envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
-                            ]]
-                        ]
-                        
-                        // Загрузка данных в переменные среды
-                        wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-                            // В этой области MYAPP_USERNAME и MYAPP_PASSWORD доступны как переменные с окружением
-                            echo "Значение username: ${env.MYAPP_USERNAME}"
-                            echo "Значение password: ${env.MYAPP_PASSWORD}"
-
-                            println "Значение username: ${env.MYAPP_USERNAME}"
-                            println "Значение password: ${env.MYAPP_PASSWORD}"
-                        }
+                    // Чтение секретов из Vault
+                    withVault([configuration: configuration, vaultSecrets: secrets]) {
+                        // Теперь переменные окружения MYAPP_USERNAME и MYAPP_PASSWORD установлены
+                        // и могут быть использованы в этом блоке
+                        echo "Значение username: ${env.MYAPP_USERNAME}"
+                        echo "Значение password: ${env.MYAPP_PASSWORD}"
                     }
                 }
             }
         }
-
+        
         stage('Use Secret') {
             steps {
                 script {
-                    // Используйте переменные среды, содержащие секреты, как вам необходимо здесь
-                    // Убедитесь, что конфиденциальные данные защищены и не выводятся в логи
-                    sh 'echo "Передача секретов в безопасное место"'
+                    // Здесь можно использовать секреты (env.MYAPP_USERNAME и env.MYAPP_PASSWORD)
+                    // Для безопасности не выводите их напрямую, как в строке выше.
+                    // Этот эхо-шаг добавлен только для демонстрации и не следует использовать его с настоящими секретами.
+                    echo 'Using secrets in the environment...'
                 }
             }
         }
@@ -58,7 +48,6 @@ pipeline {
         stage('Post-processing') {
             steps {
                 echo 'Cleaning up...'
-                // Очистка переменных среды, если она необходима
             }
         }
     }
