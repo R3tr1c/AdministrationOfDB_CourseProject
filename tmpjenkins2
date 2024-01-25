@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    environment {
+        VAULT_ADDR = 'http://localhost:8201'
+        VAULT_CREDENTIALS = 'my-vault-token' // Убран комментарий для безопасности
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+                echo 'Preparing the environment...'
+            }
+        }
+        
+        stage('Get Secret') {
+            steps {
+                withCredentials([string(credentialsId: "${env.VAULT_CREDENTIALS}", variable: 'VAULT_TOKEN')]) {
+                    script {
+                        // Ваш пайплайн должен быть правильно настроен, чтобы использовать VAULT_ADDR
+                        env.VAULT_AUTH_METHOD = 'token' // Указание метода авторизации
+                        sh 'vault login $VAULT_TOKEN' // Вход в Vault с использованием VAULT_TOKEN
+                        
+                        // Запрос Secrets используя Vault CLI и приведение их в скрытом формате
+                        def secrets = sh(script: "vault kv get -format=json secret/myapp/config", returnStdout: true).trim()
+                        
+                        // Парсинг JSON ответа для извлечения конкретных секретов
+                        def parsedSecrets = readJSON text: secrets
+                        
+                        // Присваивание переменных среды без echo для безопасности
+                        env.MYAPP_USERNAME = parsedSecrets.data.username
+                        env.MYAPP_PASSWORD = parsedSecrets.data.password
+                        
+                        // Вывод полученных секретов
+                        println "Значение username: ${env.MYAPP_USERNAME}"
+                        println "Значение password: ${env.MYAPP_PASSWORD}"
+                    }
+                }
+            }
+        }
+
+        stage('Use Secret') {
+            steps {
+                script {
+                    // Использование секретов, убедитесь, что они не печатаются или не отображаются.
+                    // Например, вы можете передать их в другой скрипт или приложение.
+                    sh 'echo "Передача секретов в безопасное место"'
+                }
+            }
+        }
+
+        stage('Post-processing') {
+            steps {
+                echo 'Cleaning up...'
+            }
+        }
+    }
+}
