@@ -21,12 +21,13 @@ pipeline {
                             [envVar: 'MYAPP_PASSWORD', vaultKey: 'password']
                         ]]
                     ]
+                    // Опредеелние конфигурации хранилища секретов
                     def configuration = [vaultUrl: "$VAULT_ADDR", vaultCredentialId: 'app-role-creds', engineVersion: 1]
                     
                     // Чтение секретов из Vault
                     withVault([configuration: configuration, vaultSecrets: secrets]) {
-                        // Теперь переменные окружения MYAPP_USERNAME и MYAPP_PASSWORD установлены
-                        // и могут быть использованы в этом блоке
+
+                        // Вывод
                         echo "Значение username: ${env.MYAPP_USERNAME}"
                         echo "Значение password: ${env.MYAPP_PASSWORD}"
                     }
@@ -38,8 +39,7 @@ pipeline {
             steps {
                 script {
                     // Здесь можно использовать секреты (env.MYAPP_USERNAME и env.MYAPP_PASSWORD)
-                    // Для безопасности не выводите их напрямую, как в строке выше.
-                    // Этот эхо-шаг добавлен только для демонстрации и не следует использовать его с настоящими секретами.
+
                     echo 'Using secrets in the environment...'
                 }
             }
