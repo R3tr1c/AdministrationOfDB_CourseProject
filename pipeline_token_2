@@ -25,8 +25,8 @@ pipeline {
                     
                     // Чтение секретов из Vault
                     withVault(configuration: configuration, vaultSecrets: secrets) {
-                        // Теперь переменные окружения MYAPP_USERNAME и MYAPP_PASSWORD установлены
-                        // и могут быть использованы в этом блоке
+                        
+                        // Вывод
                         echo "Значение username: ${env.MYAPP_USERNAME}"
                         echo "Значение password: ${env.MYAPP_PASSWORD}"
                     }
@@ -37,9 +37,6 @@ pipeline {
         stage('Use Secret') {
             steps {
                 script {
-                    // Здесь можно использовать секреты (env.MYAPP_USERNAME и env.MYAPP_PASSWORD)
-                    // Для безопасности не выводите их напрямую, как в строке выше.
-                    // Этот эхо-шаг добавлен только для демонстрации и не следует использовать его с настоящими секретами.
                     echo 'Using secrets in the environment...'
                 }
             }
